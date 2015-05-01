@@ -1,5 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+# 為替・日経平均・TOPIXを知らせる
+
+import jholiday
 from time import sleep
 import urllib2  
 import re
@@ -8,15 +12,16 @@ import tweepy
 import math
 import datetime
 
+def isOpen(today):
+    tommorrow = today + datetime.timedelta(days=1)
+    yesterday = today - datetime.timedelta(days=1)
+    if today.weekday() >= 5 or jholiday.holiday_name(date=today) is not None or (jholiday.holiday_name(date=tommorrow) is not None and jholiday.holiday_name(date=yesterday)) or (today.month==1 and today.day <= 3) or (today.month==12 and today.day <= 31) :
+        return False
+    else:
+        return True
 #時間
 d = datetime.datetime.today()
-if d.hour >= 6 and d.hour <= 9:
-	message = 'おはようございます。'
-elif d.hour >= 10 and d.hour <= 14:
-	message = 'こんにちは。'
-else:
-	message =  'お疲れさまです。'
-message += '%s月%s日%s時%s分をお知らせします。\n' % (d.month, d.day, d.hour, d.minute)
+message = '{month}月{day}日{hour}時{minute}分をお知らせします。\n\n'.format(month=str(d.month), day=str(d.day), hour=str(d.hour).zfill(2), minute=str(d.minute).zfill(2))
 
 #円相場
 url = "http://stocks.finance.yahoo.co.jp/stocks/detail/?code=usdjpy"
@@ -25,10 +30,11 @@ data = res.read()
 tmp = re.search('<td class="stoksPrice">(.*)</td>', data, re.U)
 dollar = tmp.group(1)
 dollar = round(float(dollar), 2)
-message += "ただいまの円相場は1ドル"+str(dollar)+"円"+"です。\n"
+message += "円相場: 1ドル{price}円\n".format(price=str(dollar))
 
-#日経平均
-if d.weekday() <=5 and d.hour >= 10 and d.hour <= 15:
+today = datetime.date.today()
+if isOpen(today) and d.hour >= 10 and d.hour <= 15:
+    #日経平均
 	url = "http://stocks.finance.yahoo.co.jp/stocks/detail/?code=998407"
 	res = urllib2.urlopen(url)  
 	data = res.read()
@@ -37,10 +43,20 @@ if d.weekday() <=5 and d.hour >= 10 and d.hour <= 15:
 	nikkei = nikkei.replace(',','')
 	tmp = re.search('前日比</span><span class=".*">(.*)（.*）</span>', data, re.U)
 	nikkei_change= tmp.group(1)
-	message += "日経平均株価は"+nikkei+"円"+"(前日比"+nikkei_change+"円)になっています。"
+	message += "日経平均: {price}円 (前日比{change}円)\n".format(price=str(nikkei), change=str(nikkei_change))
 
+    #TOPIX
+	url = "http://stocks.finance.yahoo.co.jp/stocks/detail/?code=998405"
+	res = urllib2.urlopen(url)  
+	data = res.read()
+	tmp = re.search('<td class="stoksPrice">(.*)</td>', data, re.U)
+	topix = tmp.group(1)
+	topix = topix.replace(',','')
+	tmp = re.search('前日比</span><span class=".*">(.*)（.*）</span>', data, re.U)
+	topix_change= tmp.group(1)
+	message += "TOPIX: {price} (前日比{change})".format(price=str(topix), change=str(topix_change))
 #Authorization
-f = open('/home/mahoro/tweetmaid/config.txt')
+f = open('/home/kivantium/config.txt')
 data = f.read()
 f.close()
 lines = data.split('\n')
@@ -54,4 +70,3 @@ auth = tweepy.OAuthHandler(KEY, SECRET)
 auth.set_access_token(ATOKEN, ASECRET)
 api = tweepy.API(auth)
 api.update_status(message)
-

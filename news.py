@@ -7,14 +7,11 @@ import time
 import tweepy
 import math
 import datetime
-import MeCab
 import sys
 
-tagger = MeCab.Tagger('-Ochasen')
 d = datetime.datetime.utcnow()
-m = MeCab.Tagger('-Owakati')
 #Authorization
-f = open('/home/mahoro/tweetmaid/config.txt')
+f = open('/home/kivantium/config.txt')
 data = f.read()
 f.close()
 lines = data.split('\n')
