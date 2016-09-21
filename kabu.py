@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# 為替・日経平均・TOPIXを知らせる
-
 import jholiday
 from time import sleep
 import urllib2  
@@ -15,7 +13,7 @@ import datetime
 def isOpen(today):
     tommorrow = today + datetime.timedelta(days=1)
     yesterday = today - datetime.timedelta(days=1)
-    if today.weekday() >= 5 or jholiday.holiday_name(date=today) is not None or (jholiday.holiday_name(date=tommorrow) is not None and jholiday.holiday_name(date=yesterday)) or (today.month==1 and today.day <= 3) or (today.month==12 and today.day <= 31) :
+    if today.weekday() >= 5 or jholiday.holiday_name(date=today) is not None or (jholiday.holiday_name(date=tommorrow) is not None and jholiday.holiday_name(date=yesterday)) or (today.month==1 and today.day <= 3) or (today.month==12 and today.day == 31) :
         return False
     else:
         return True
@@ -56,7 +54,7 @@ if isOpen(today) and d.hour >= 10 and d.hour <= 15:
 	topix_change= tmp.group(1)
 	message += "TOPIX: {price} (前日比{change})".format(price=str(topix), change=str(topix_change))
 #Authorization
-f = open('/home/kivantium/config.txt')
+f = open('config.txt')
 data = f.read()
 f.close()
 lines = data.split('\n')
@@ -69,4 +67,5 @@ ASECRET = lines[3]
 auth = tweepy.OAuthHandler(KEY, SECRET)
 auth.set_access_token(ATOKEN, ASECRET)
 api = tweepy.API(auth)
+print message
 api.update_status(message)
