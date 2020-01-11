@@ -2,22 +2,24 @@
 # -*- coding: utf-8 -*-
  
 import tweepy
-import urllib2
 import datetime
 from PIL import Image, ImageDraw, ImageFont
 import xml.etree.ElementTree as ET
+import requests
+import os
 
 url  = "http://www.drk7.jp/weather/xml/13.xml"
 d = datetime.datetime.today()
 today = '{year}/{month}/{day}'.format(year=d.year, month=str(d.month).zfill(2), day=str(d.day).zfill(2))
-content = '{month}月{day}日{hour}時 東京の天気予報です。\n'.format(month=d.month, day=d.day, hour=d.hour)
+content = '今日{}時の天気予報です。\n'.format(d.hour)
 
-res = urllib2.urlopen(url)
-feed = res.read()
+response = requests.get(url)
+response.encoding = response.apparent_encoding
+feed = response.text
 
 tree = ET.fromstring(feed)
 weather = tree.findall(".//area[4]/info[@date='{date}']/weather".format(date=today))
-content += '今日の天気は{tenki}\n'.format(tenki=weather[0].text.encode('utf-8'))
+content += '{}月{}日の東京の天気は{}\n'.format(d.month, d.day, weather[0].text)
 chance = tree.findall(".//area[4]/info[@date='{date}']/rainfallchance/period".format(date=today))
 content += '降水確率は午前{am}%、午後{pm}%、夜{night}%\n'.format(am=chance[1].text, pm=chance[2].text, night=chance[3].text)
 temp = tree.findall(".//area[4]/info[@date='{date}']/temperature/range".format(date=today))
@@ -27,28 +29,30 @@ content += 'http://www.jma.go.jp/jp/yoho/319.html'
 image = Image.new('RGB', (800, 450), (255, 255, 255))
 
 draw = ImageDraw.Draw(image)
-font_50 = ImageFont.truetype('GenShinGothic-P-Regular.ttf', 50, encoding='unic')
-font_40 = ImageFont.truetype('GenShinGothic-P-Regular.ttf', 40, encoding='unic')
-font_30 = ImageFont.truetype('GenShinGothic-P-Regular.ttf', 30, encoding='unic')
-font_26 = ImageFont.truetype('GenShinGothic-P-Regular.ttf', 26, encoding='unic')
-font_20 = ImageFont.truetype('GenShinGothic-P-Regular.ttf', 20, encoding='unic')
+font_path = os.path.join(os.path.dirname(__file__), 'GenShinGothic-P-Regular.ttf')
+font_50 = ImageFont.truetype(font_path, 50)
+font_40 = ImageFont.truetype(font_path, 40)
+font_30 = ImageFont.truetype(font_path, 30)
+font_26 = ImageFont.truetype(font_path, 26)
+font_20 = ImageFont.truetype(font_path, 20)
 
 
 draw.text((30, 20), u'{}月{}日 東京の天気'.format(d.month, d.day), font=font_50, fill=(0,0,0))
 
 if weather[0].text.find(u'雪') > -1:
-    emoji = Image.open('snowy.png')
+    emoji = Image.open(os.path.join(os.path.dirname(__file__), 'snowy.png'))
 elif weather[0].text.find(u'雨') > -1:
-    emoji = Image.open('rainy.png')
+    emoji = Image.open(os.path.join(os.path.dirname(__file__), 'rainy.png'))
 elif weather[0].text.find(u'くもり') > -1:
-    emoji = Image.open('clowdy.png')
+    emoji = Image.open(os.path.join(os.path.dirname(__file__), 'clowdy.png'))
 else:
-    emoji = Image.open('sunny.png')
+    emoji = Image.open(os.path.join(os.path.dirname(__file__), 'sunny.png'))
 
 emoji = emoji.resize((150, 150))
 image.paste(emoji, (60, 150))
 
-draw.text((60, 330), u'{}'.format(weather[0].text.center(15)), font=font_30, fill=(0,0,0))
+fill = 5-len(weather[0].text)/2
+draw.text((0, 330), u'{}{}{}'.format(u'　'*int(fill), weather[0].text, u'　'*int(fill)), font=font_30, fill=(0,0,0))
 
 draw.text((300, 130), u'最高 {}℃'.format(temp[0].text), font=font_40, fill=(200,50,50))
 draw.text((300, 190), u'最低 {}℃'.format(temp[1].text), font=font_40, fill=(50,50,200))
@@ -80,10 +84,10 @@ draw.text((x+w*2/5+20, y+h/2+10), u'{}%'.format(chance[1].text.rjust(2)), font=f
 draw.text((x+w*3/5+20, y+h/2+10), u'{}%'.format(chance[2].text.rjust(2)), font=font_30, fill=(50,50,50))
 draw.text((x+w*4/5+20, y+h/2+10), u'{}%'.format(chance[3].text.rjust(2)), font=font_30, fill=(50,50,50))
 
-image.save('weather.png')
+image.save(os.path.join(os.path.dirname(__file__), 'weather.png'))
 
 #Authorization
-f = open('config.txt')
+f = open(os.path.join(os.path.dirname(__file__), 'config.txt'))
 data = f.read()
 f.close()
 lines = data.split('\n')
@@ -96,4 +100,4 @@ ASECRET = lines[3]
 auth = tweepy.OAuthHandler(KEY, SECRET)
 auth.set_access_token(ATOKEN, ASECRET)
 api = tweepy.API(auth)
-api.update_with_media('weather.png', status=content)
+api.update_with_media(os.path.join(os.path.dirname(__file__), 'weather.png'), status=content)

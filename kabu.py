@@ -11,6 +11,7 @@ import datetime
 import json
 import requests
 import os
+from bs4 import BeautifulSoup
 
 #def isOpen(today):
 #    tommorrow = today + datetime.timedelta(days=1)
@@ -24,19 +25,15 @@ d = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
 message = '{month}月{day}日{hour}時{minute}分をお知らせします。\n\n'.format(month=str(d.month), day=str(d.day), hour=str(d.hour).zfill(2), minute=str(d.minute).zfill(2))
 
 #円相場
-#url = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.xchange%20where%20pair%20in%20(%22USDJPY%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys"
-#res = urllib2.urlopen(url)
-#data = res.read()
-#data = json.loads(data)
-#dollar = data["query"]["results"]["rate"]["Rate"]
-#url = "http://stocks.finance.yahoo.co.jp/stocks/detail/?code=usdjpy"
-#res = urllib2.urlopen(url)  
-#data = res.read()
-#tmp = re.search('<td class="stoksPrice">(.*)</td>', data, re.U)
-#dollar = tmp.group(1)
-#dollar = round(float(dollar), 2)
-#message += "1ドル: {:.2f}円\n".format(dollar)
-#
+res = requests.get('https://fx.minkabu.jp/pair/USDJPY')
+soup = BeautifulSoup(res.text, 'html.parser')
+title_text = soup.find('title').get_text()
+chart = soup.find("script", attrs={"data-hypernova-key":"OhlcBox"})
+tmp = re.search('<!--(.*)-->', chart.contents[0], re.U)
+chart = tmp.group(1)
+dollar = json.loads(chart)['rate']['bid']
+message += "1ドル: {:.2f}円\n".format(dollar)
+
 #today = datetime.date.today()
 #if isOpen(today) and d.hour >= 10 and d.hour <= 15:
 #    #日経平均
