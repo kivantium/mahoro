@@ -54,6 +54,7 @@ location / {
 の下に以下を追記
 ```
 location /icon/ {
+        client_max_body_size 10M;
         proxy_pass http://localhost:12345/;
 }
 ```
