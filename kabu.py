@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 #import jholiday
@@ -25,14 +25,15 @@ d = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
 message = '{month}月{day}日{hour}時{minute}分をお知らせします。\n\n'.format(month=str(d.month), day=str(d.day), hour=str(d.hour).zfill(2), minute=str(d.minute).zfill(2))
 
 #円相場
-res = requests.get('https://fx.minkabu.jp/pair/USDJPY')
+
+res = requests.get('https://nikkei225jp.com')
 soup = BeautifulSoup(res.text, 'html.parser')
-title_text = soup.find('title').get_text()
-chart = soup.find("script", attrs={"data-hypernova-key":"OhlcBox"})
-tmp = re.search('<!--(.*)-->', chart.contents[0], re.U)
-chart = tmp.group(1)
-dollar = json.loads(chart)['rate']['bid']
-message += "1ドル: {:.2f}円\n".format(dollar)
+
+price = [p.get_text() for p in soup.select("div#if_con div.if_cur")]
+change = [c.get_text() for c in soup.select("div#if_con span.bp_dw")]
+message += "日経平均株価: {}円 {}\n".format(price[0], change[0])
+message += "ダウ平均株価: {}ドル {}\n".format(price[1], change[1])
+message += "1ドル: {}円 {}\n".format(price[2], change[2])
 
 #today = datetime.date.today()
 #if isOpen(today) and d.hour >= 10 and d.hour <= 15:

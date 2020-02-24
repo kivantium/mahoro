@@ -8,3 +8,58 @@
 - `anime.py`: 20:50, 21:50, 22:50, 23:50に実行されます。[しょぼいカレンダー](http://cal.syoboi.jp/)から取得したTOKYO MXとテレビ東京のアニメ情報を表示します。
 - `tenki.py`: 05:10, 06:10, 07:10, 08:10, 09:10に実行されます。その日の天気予報画像を生成してツイートします。
 - `tenki_tomorrow.py`: 22:00に実行されます。次の日の天気予報画像を生成してツイートします。
+
+サーバー設定メモ
+----------------
+### 定時に走るスクリプト
+```
+sudo timedatectl set-timezone Asia/Tokyo
+sudo service cron restart
+sudo apt update
+sudo apt install python3-pip
+pip3 install beautifulsoup4 feedparser pillow
+```
+
+`crontab -e` に以下を記述
+```
+# m h  dom mon dow   command
+0  *  *  *  * /home/ubuntu/mahoro/kabu.py >/dev/null 2>&1
+*  *  *  *  * /home/ubuntu/mahoro/news.py >/dev/null 2>&1
+50  20-23  *  *  * /home/ubuntu/mahoro/anime.py >/dev/null 2>&1
+10  5-9  *  *  * /home/ubuntu/mahoro/tenki.py >/dev/null 2>&1
+00  22  *  *  * /home/ubuntu/mahoro/tenki_tomorrow.py >/dev/null 2>&1
+```
+
+### サーバーの設定
+##### Let's Encrypt
+[手順詳細](https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx)
+```
+sudo apt-get install nginx software-properties-common
+sudo add-apt-repository universe
+sudo add-apt-repository ppa:certbot/certbot
+sudo apt-get update
+sudo apt-get install certbot python-certbot-nginx
+sudo certbot --nginx
+```
+
+#### リバースプロキシの設定
+`/etc/nginx/sites-available/default`の
+```
+location / {
+        # First attempt to serve request as file, then
+        # as directory, then fall back to displaying a 404.
+        try_files $uri $uri/ =404;
+}
+```
+の下に以下を追記
+```
+location /icon/ {
+        client_max_body_size 10M;
+        proxy_pass http://localhost:12345/;
+}
+```
+
+サーバースクリプトをnohupで実行しておく
+```
+nohup python3 server.py >server-log.txt 2>&1 &
+```
