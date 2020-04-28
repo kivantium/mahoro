@@ -212,20 +212,18 @@ def upload_file():
     </section>
 <section class="section">
 <div class="container">
-<h2 class="title">icon history</h2>"""
-
-    for chunk in chunked(image_list[:18], 6):
-        string += '<div class="columns is-mobile">'
-        for filename in chunk:
-            string += """
-    <div class="column is-2" style="padding: 4px">
+<h2 class="title">icon history</h2>
+<div class="columns is-mobile is-multiline is-gapless">"""
+    for filename in image_list[:24]:
+        string += """
+    <div class="column is-2-mobile is-2-tablet is-1-desktop">
     <figure class="image is-square">
-    <img class="is-rounded" src="/icon/images/{}">
+    <img class="is-rounded" src="/icon/images/{}" style="padding:3%">
     </figure>
     </div>
     """.format(filename)
-        string += '</div>\n'
     string += '''
+</div>
 <p class="subtitle"><a href="history">もっと見る</a></p>
 </div>
 </section>
@@ -262,19 +260,16 @@ def show_history():
 <section class="section">
 <div class="container">
 <h2 class="title">icon history</h2>
-"""
-
-    for chunk in chunked(image_list, 6):
-        string += '<div class="columns is-mobile">'
-        for filename in chunk:
-            string += """
-    <div class="column is-2" style="padding: 4px">
+<div class="columns is-mobile is-multiline is-gapless">"""
+    for filename in image_list:
+        string += """
+    <div class="column is-2-mobile is-2-tablet is-1-desktop">
     <figure class="image is-square">
-    <img class="is-rounded" src="/icon/images/{}">
+    <img class="is-rounded" src="/icon/images/{}" style="padding:3%">
     </figure>
     </div>
     """.format(filename)
-        string += '</div>\n'
+
     string += '''
 </div>
 </div>
