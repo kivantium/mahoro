@@ -37,45 +37,55 @@ soup = BeautifulSoup(res.text, 'html.parser')
 
 today = datetime.date.today()
 if isOpen(today) and d.hour >= 10 and d.hour <= 15:
-    pass
+    #pass
     ##日経平均
     #search = re.compile('.*Nikkei.*')
     #nikkei = soup.find('td', string=search)
     ##nikkei = soup.find('td', string='Nikkei')
     #nikkei_price = nikkei.find_next().text
     #nikkei_change = nikkei.find_next().find_next().text
-    #message += "日経平均: {price}円 (前日比{change}円)\n".format(price=(nikkei_price), change=str(nikkei_change))
+    nikkei_price = soup.find('span', {'data-reactid':'123'}).get_text()
+    nikkei_change = soup.find('span', {'data-reactid':'125'}).get_text()
+    message += "日経平均: {price}円 (前日比{change}円)\n".format(price=(nikkei_price), change=str(nikkei_change))
 
     #TOPIX
 	#url = "http://stocks.finance.yahoo.co.jp/stocks/detail/?code=998405"
-	#res = urllib2.urlopen(url)  
+	#res = urllib2.urlopen(url)
 	#data = res.read()
 	#tmp = re.search('<td class="stoksPrice">(.*)</td>', data, re.U)
 	#topix = tmp.group(1)
 	#topix = topix.replace(',','')
 	#tmp = re.search('前日比</span><span class=".*">(.*)（.*）</span>', data, re.U)
 	#topix_change= tmp.group(1)
-	#message += "TOPIX: {price} (前日比{change})\n".format(price=str(topix), change=str(topix_change))
+    rest = requests.get('http://stocks.finance.yahoo.co.jp/stocks/detail/?code=998405')
+    soupt = BeautifulSoup(rest.text, 'html.parser')
+    topix_price = soupt.find_all('td', class_='stoksPrice')[1].get_text()
+    topix_change = soupt.find('span', class_='icoUpGreen yjMSt').get_text().split('（')[0]
+	message += "TOPIX: {price} (前日比{change})\n".format(price=str(topix), change=str(topix_change))
 
 tz = timezone('EST')
-ustime = datetime.datetime.now(tz) 
+ustime = datetime.datetime.now(tz)
 us_holidays = holidays.UnitedStates()
 
 if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays \
    and ustime.hour >= 10 and ustime.hour <= 16:
-    pass
+    #pass
     ##dow = soup.find('td', string='Dow')
     #search = re.compile('.*Dow.*')
     #dow = soup.find('td', string=search)
     #dow_price = dow.find_next().text
     #dow_change = dow.find_next().find_next().text
-    #message += "ダウ平均: {price}ドル (前日比{change}ドル)\n".format(price=(dow_price), change=str(dow_change))
+    dow_price = soup.find('span', {'data-reactid':'83'}).get_text()
+    dow_change = soup.find('span', {'data-reactid':'85'}).get_text()
+    message += "ダウ平均: {price}ドル (前日比{change}ドル)\n".format(price=(dow_price), change=str(dow_change))
     #search = re.compile('.*S&P 500.*')
     #spc = soup.find('td', string=search)
     ##spc = soup.find('td', string='S&P 500')
     #spc_price = spc.find_next().text
     #spc_change = spc.find_next().find_next().text
-    #message += "S&P 500: {price} (前日比{change})\n".format(price=(spc_price), change=str(spc_change))
+    spc_price = soup.find('span', {'data-reactid':'303'}).get_text()
+    spc_change = soup.find('span', {'data-reactid':'305'}).get_text()
+    message += "S&P 500: {price} (前日比{change})\n".format(price=(spc_price), change=str(spc_change))
 
 res = requests.get('https://in.finance.yahoo.com/currencies')
 soup = BeautifulSoup(res.text, 'html.parser')
@@ -115,7 +125,7 @@ df['macdhist_ema3'] = df['macdhist'].ewm(span=3).mean()
 
 df = df.tz_localize('UTC').tz_convert('Asia/Tokyo')
 df = df[-49:-1]
-apds = [ mpf.make_addplot(df['macdhist'], type='bar', width=1.0, panel=1, color='gray', alpha=0.5, ylabel='macdhist'), 
+apds = [ mpf.make_addplot(df['macdhist'], type='bar', width=1.0, panel=1, color='gray', alpha=0.5, ylabel='macdhist'),
          mpf.make_addplot(df['macdhist_ema3'], width=1.0, panel=1, alpha=0.5) ]
 
 filename = os.path.join(os.path.dirname(__file__), 'candlestick.png')
