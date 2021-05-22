@@ -148,7 +148,7 @@ def show_history():
 <section class="section">
 <div class="container">
 <h2 class="title">icon history</h2>
-<a href="../">戻る</a>
+<a href="/icon/">戻る</a>
 <div class="columns is-mobile is-multiline is-gapless">"""
     for filename in image_list:
         string += """
@@ -190,7 +190,7 @@ def upload_file():
         </head>
         <body>
         <p>ファイルを選択してください</p>
-        <a href="../">戻る</a>
+        <a href="/icon/">戻る</a>
         </body>
         </html>
         '''
@@ -211,7 +211,7 @@ def upload_file():
         </head>
         <body>
         <p>ファイルを選択してください</p>
-        <a href="../">戻る</a>
+        <a href="/icon/">戻る</a>
         </body>
         </html>
         '''
@@ -234,7 +234,7 @@ def upload_file():
             </head>
             <body>
             <p>エラーが起こりました。JPEG, GIF, PNG, WebP以外の画像をアップロードしていませんか？</p>
-            <a href="../">戻る</a>
+            <a href="/icon/">戻る</a>
             </body>
             </html>
             '''
@@ -268,7 +268,7 @@ def upload_file():
             </head>
             <body>
             <p>原因不明のエラーが起こりました。時間をおいてまた実行してください</p>
-            <a href="../">戻る</a>
+            <a href="/icon/">戻る</a>
             </body>
             </html>
             '''
@@ -287,7 +287,7 @@ def upload_file():
         <div class="container">
         <div class="content">
         <p>アイコンは正常に変更されました。</p>
-        <a href="../">戻る</a>
+        <a href="/icon/">戻る</a>
         </div>
         </div>
         </section>
@@ -310,7 +310,7 @@ def search_file():
         </head>
         <body>
         <p>ファイルを選択してください</p>
-        <a href="../">戻る</a>
+        <a href="/icon/">戻る</a>
         </body>
         </html>
         '''
@@ -331,7 +331,7 @@ def search_file():
         </head>
         <body>
         <p>ファイルを選択してください</p>
-        <a href="../">戻る</a>
+        <a href="/icon/">戻る</a>
         </body>
         </html>
         '''
@@ -339,7 +339,7 @@ def search_file():
         filename = secure_filename(file.filename)
         _, ext = os.path.splitext(file.filename)
         current_time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        filename = os.path.join(app.config['UPLOAD_FOLDER'], current_time+ext)
+        filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', current_time+ext)
         file.save(filename)
         mimetype = magic.from_file(filename, mime=True)
         if mimetype not in ALLOWED_MIMETYPE:
@@ -354,7 +354,7 @@ def search_file():
             </head>
             <body>
             <p>エラーが起こりました。JPEG, GIF, PNG, WebP以外の画像をアップロードしていませんか？</p>
-            <a href="../">戻る</a>
+            <a href="/icon/">戻る</a>
             </body>
             </html>
             '''
@@ -369,8 +369,7 @@ def search_file():
             target_hist = cv2.calcHist([target_img], [0], None, [256], [0, 256])
             niteru = [[0.0, ''], [0.0, ''], [0.0, ''], [0.0, ''], [0.0, '']]
             for filenamel in image_list:
-                filename_img = os.path.abspath(os.path.dirname(__file__)) + "\\images\\" + filenamel
-                print(filename_img)
+                filename_img = os.path.join(os.path.abspath(os.path.dirname(__file__)), "images", filenamel)
                 comparing_img = cv2.imread(filename_img)
                 comparing_img = cv2.resize(comparing_img, IMG_SIZE)
                 comparing_hist = cv2.calcHist([comparing_img], [0], None, [256], [0, 256])
@@ -398,7 +397,7 @@ def search_file():
 <section class="section">
 <div class="container">
 <h2 class="title">similar image</h2>
-<a href="../">戻る</a>
+<a href="/icon/">戻る</a>
 <div class="columns is-mobile is-multiline is-gapless">"""
             niteru.reverse()
             for n in niteru:
@@ -439,7 +438,7 @@ fileInput.onchange = () => {
             </head>
             <body>
             <p>原因不明のエラーが起こりました。時間をおいてまた実行してください</p>
-            <a href="../">戻る</a>
+            <a href="/icon/">戻る</a>
             </body>
             </html>
             '''
