@@ -62,12 +62,6 @@ def index():
         <h1 class="title">kivantium icon changer</h1>
         <div class="content">
           <p>画像ファイルをアップロードしてください (JPEG, PNG, GIF, WebP)</p>
-          <ul>
-            <li>現行システムに移行してからのアイコン履歴を表示するようにしました。 (2020/04/16)</li>
-            <li>スマートフォン向けにデザインを変更しました。 (2020/03/02)</li>
-            <li>コメント機能がつきました。(2020/03/02)</li>
-            <li>ファイルサイズの上限が10MBになりました（自動で400x400にトリミングされます） (2019/03/04)</li>
-          </ul>
           <form method="post" enctype="multipart/form-data" accept="image/*">
             <div class="field">
               <div id="file-js" class="file has-name is-fullwidth">
@@ -95,9 +89,18 @@ def index():
               <input class="button is-link" type="submit" formaction="./search" value="Search">
             </div>
           </form>
+          <h3>更新履歴</h3>
+          <ul>
+            <li>@amane-lyricさんによって検索機能が実装されました。 (2021/05/22)</li>
+            <li>現行システムに移行してからのアイコン履歴を表示するようにしました。 (2020/04/16)</li>
+            <li>スマートフォン向けにデザインを変更しました。 (2020/03/02)</li>
+            <li>コメント機能がつきました。(2020/03/02)</li>
+            <li>ファイルサイズの上限が10MBになりました（自動で400x400にトリミングされます） (2019/03/04)</li>
+          </ul>
         </div>
       </div>
     </section>
+
 <section class="section">
 <div class="container">
 <h2 class="title">icon history</h2>

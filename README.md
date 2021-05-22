@@ -16,7 +16,7 @@
 sudo timedatectl set-timezone Asia/Tokyo
 sudo service cron restart
 sudo apt update
-sudo apt install python3-pip
+sudo apt install python3-pip python3-opencv
 pip3 install beautifulsoup4 feedparser pillow
 ```
 
