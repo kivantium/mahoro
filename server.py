@@ -366,21 +366,27 @@ def search_file():
             os.rename(filename, filename+ext)
             filename = filename + ext
         try:
-            IMG_SIZE = (200, 200)
-            target_img = cv2.imread(filename)
+            bf = cv2.BFMatcher(cv2.NORM_HAMMING)
+            detector = cv2.AKAZE_create()
+            IMG_SIZE = (300, 300)
+            target_img = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
             target_img = cv2.resize(target_img, IMG_SIZE)
-            target_hist = cv2.calcHist([target_img], [0], None, [256], [0, 256])
-            niteru = [[0.0, ''], [0.0, ''], [0.0, ''], [0.0, ''], [0.0, '']]
+            (target_kp, target_des) = detector.detectAndCompute(target_img, None)
+            niteru = [[100000.0, ''] for i in range(12)]
             for filenamel in image_list:
                 filename_img = os.path.join(os.path.abspath(os.path.dirname(__file__)), "images", filenamel)
-                comparing_img = cv2.imread(filename_img)
-                comparing_img = cv2.resize(comparing_img, IMG_SIZE)
-                comparing_hist = cv2.calcHist([comparing_img], [0], None, [256], [0, 256])
+                try:
+                    comparing_img = cv2.imread(filename_img, cv2.IMREAD_GRAYSCALE)
+                    comparing_img = cv2.resize(comparing_img, IMG_SIZE)
+                    (comparing_kp, comparing_des) = detector.detectAndCompute(comparing_img, None)
+                    matches = bf.match(target_des, comparing_des)
+                    dist = [m.distance for m in matches]
+                    ret = sum(dist) / len(dist)
+                except cv2.error:
+                    ret = 100000.0
 
-                ret = cv2.compareHist(target_hist, comparing_hist, 0)
-
-                if niteru[0][0] < ret:
-                    niteru[0] = [ret, filenamel]
+                if niteru[11][0] > ret:
+                    niteru[11] = [ret, filenamel]
                     niteru.sort()
 
             string = """
@@ -402,7 +408,7 @@ def search_file():
 <h2 class="title">similar image</h2>
 <a href="/icon/">戻る</a>
 <div class="columns is-mobile is-multiline is-gapless">"""
-            niteru.reverse()
+
             for n in niteru:
                 string += """
             <div class="column is-2-mobile is-2-tablet is-1-desktop">
