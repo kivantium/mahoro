@@ -190,7 +190,6 @@ def upload_file():
         filename_img = cv2.imread(os.path.join(os.path.abspath(os.path.dirname(__file__)), "query", image_name))
         filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), "images", image_name)
         cv2.imwrite(filename, filename_img)
-        print(filename)
         mimetype = magic.from_file(filename, mime=True)
         try:
             if os.path.getsize(filename) > 700*1000 or mimetype == 'image/webp':
