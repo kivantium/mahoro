@@ -8,7 +8,7 @@ import traceback
 import itertools
 from more_itertools import chunked
 
-from flask import Flask, flash, request, redirect, url_for
+from flask import Flask, flash, request, redirect, url_for, Blueprint
 import magic
 from tweepy import *
 from werkzeug.utils import secure_filename
@@ -36,7 +36,11 @@ api = API(auth)
 
 ALLOWED_MIMETYPE = set(['image/jpeg', 'image/gif', 'image/png', 'image/webp'])
 
-app = Flask(__name__, static_folder='images')
+img = Blueprint("img", __name__, static_url_path='/images', static_folder='./images')
+que = Blueprint("que", __name__, static_url_path='/query', static_folder='./query')
+app = Flask(__name__)
+app.register_blueprint(img)
+app.register_blueprint(que)
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'images/')
 #app.config['MAX_CONTENT_LENGTH'] = 10240 *  1024
 
@@ -181,70 +185,12 @@ fileInput.onchange = () => {
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if 'file' not in request.files:
-        return '''
-        <!doctype html>
-        <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>エラー</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
-        <title>ファイルを選択してください</title>
-        </head>
-        <body>
-        <p>ファイルを選択してください</p>
-        <a href="/icon/">戻る</a>
-        </body>
-        </html>
-        '''
-    file = request.files['file']
-    comment = request.form['comment']
-    # if user does not select file, browser also
-    # submit an empty part without filename
-    if file.filename == '':
-        return '''
-        <!doctype html>
-        <html>
-        <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>エラー</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
-        <title>ファイルを選択してください</title>
-        </head>
-        <body>
-        <p>ファイルを選択してください</p>
-        <a href="/icon/">戻る</a>
-        </body>
-        </html>
-        '''
-    if file:
-        filename = secure_filename(file.filename)
-        _, ext = os.path.splitext(file.filename)
-        current_time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        filename = os.path.join(app.config['UPLOAD_FOLDER'], current_time+ext)
-        file.save(filename)
+    if request.form['button'] == "OK":
+        image_name = sorted(os.listdir("query"), reverse=True)[0]
+        filename_img = cv2.imread(os.path.join(os.path.abspath(os.path.dirname(__file__)), "query", image_name))
+        filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), "images", image_name)
+        cv2.imwrite(filename, filename_img)
         mimetype = magic.from_file(filename, mime=True)
-        if mimetype not in ALLOWED_MIMETYPE:
-            return '''
-            <!doctype html>
-            <html>
-            <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>エラー</title>
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
-            </head>
-            <body>
-            <p>エラーが起こりました。JPEG, GIF, PNG, WebP以外の画像をアップロードしていませんか？</p>
-            <a href="/icon/">戻る</a>
-            </body>
-            </html>
-            '''
-        if ext == '':
-            ext = '.' + mimetype.split('/')[1]
-            os.rename(filename, filename+ext)
-            filename = filename + ext
         try:
             if os.path.getsize(filename) > 700*1000 or mimetype == 'image/webp':
                 subprocess.call('convert {} -thumbnail 400x400^ -gravity center -extent 400x400 -define jpeg:extent=700kb /tmp/output.jpg'.format(filename), shell=True)
@@ -275,28 +221,123 @@ def upload_file():
             </body>
             </html>
             '''
-        return '''
-        <!doctype html>
-        <html>
-        <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>アップロードされました</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
-        <meta charset="utf-8"/>
-        </head>
-        <body>
-        <section class="section">
-        <div class="container">
-        <div class="content">
-        <p>アイコンは正常に変更されました。</p>
-        <a href="/icon/">戻る</a>
-        </div>
-        </div>
-        </section>
-        </body>
-        </html>
-        '''
+    else:
+        if 'file' not in request.files:
+            return '''
+            <!doctype html>
+            <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>エラー</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+            <title>ファイルを選択してください</title>
+            </head>
+            <body>
+            <p>ファイルを選択してください</p>
+            <a href="/icon/">戻る</a>
+            </body>
+            </html>
+            '''
+        file = request.files['file']
+        comment = request.form['comment']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            return '''
+            <!doctype html>
+            <html>
+            <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>エラー</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+            <title>ファイルを選択してください</title>
+            </head>
+            <body>
+            <p>ファイルを選択してください</p>
+            <a href="/icon/">戻る</a>
+            </body>
+            </html>
+            '''
+        if file:
+            filename = secure_filename(file.filename)
+            _, ext = os.path.splitext(file.filename)
+            current_time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], current_time+ext)
+            file.save(filename)
+            mimetype = magic.from_file(filename, mime=True)
+            if mimetype not in ALLOWED_MIMETYPE:
+                return '''
+                <!doctype html>
+                <html>
+                <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>エラー</title>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+                </head>
+                <body>
+                <p>エラーが起こりました。JPEG, GIF, PNG, WebP以外の画像をアップロードしていませんか？</p>
+                <a href="/icon/">戻る</a>
+                </body>
+                </html>
+                '''
+            if ext == '':
+                ext = '.' + mimetype.split('/')[1]
+                os.rename(filename, filename+ext)
+                filename = filename + ext
+            try:
+                if os.path.getsize(filename) > 700*1000 or mimetype == 'image/webp':
+                    subprocess.call('convert {} -thumbnail 400x400^ -gravity center -extent 400x400 -define jpeg:extent=700kb /tmp/output.jpg'.format(filename), shell=True)
+                    api.update_profile_image('/tmp/output.jpg')
+                else:
+                    api.update_profile_image(filename)
+                client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
+
+                response = client.files_upload(
+                    channels='#icon_history',
+                    initial_comment=comment,
+                    title=os.path.basename(filename),
+                    file=filename)
+            except:
+                traceback.print_exc()
+                return '''
+                <!doctype html>
+                <html>
+                <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>エラー</title>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+                </head>
+                <body>
+                <p>原因不明のエラーが起こりました。時間をおいてまた実行してください</p>
+                <a href="/icon/">戻る</a>
+                </body>
+                </html>
+                '''
+    return '''
+    <!doctype html>
+    <html>
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>アップロードされました</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <meta charset="utf-8"/>
+    </head>
+    <body>
+    <section class="section">
+    <div class="container">
+    <div class="content">
+    <p>アイコンは正常に変更されました。</p>
+    <a href="/icon/">戻る</a>
+    </div>
+    </div>
+    </section>
+    </body>
+    </html>
+    '''
 
 @app.route('/search', methods=['POST'])
 def search_file():
@@ -342,7 +383,8 @@ def search_file():
         filename = secure_filename(file.filename)
         _, ext = os.path.splitext(file.filename)
         current_time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', current_time+ext)
+        img_name = current_time + ext
+        filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', img_name)
         file.save(filename)
         mimetype = magic.from_file(filename, mime=True)
         if mimetype not in ALLOWED_MIMETYPE:
@@ -368,11 +410,12 @@ def search_file():
         try:
             bf = cv2.BFMatcher(cv2.NORM_HAMMING)
             detector = cv2.AKAZE_create()
-            IMG_SIZE = (300, 300)
+            IMG_SIZE = (100, 100)
             target_img = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
             target_img = cv2.resize(target_img, IMG_SIZE)
             (target_kp, target_des) = detector.detectAndCompute(target_img, None)
             niteru = [[100000.0, ''] for i in range(12)]
+            niteruret = 100000.0
             for filenamel in image_list:
                 filename_img = os.path.join(os.path.abspath(os.path.dirname(__file__)), "images", filenamel)
                 try:
@@ -385,10 +428,10 @@ def search_file():
                 except cv2.error:
                     ret = 100000.0
 
-                if niteru[11][0] > ret:
+                if niteruret > ret:
                     niteru[11] = [ret, filenamel]
                     niteru.sort()
-
+                    niteruret = niteru[11][0]
             string = """
 <!doctype html>
 <html>
@@ -406,7 +449,20 @@ def search_file():
 <section class="section">
 <div class="container">
 <h2 class="title">similar image</h2>
-<a href="/icon/">戻る</a>
+<a href="/icon/">戻る</a>"""
+            string += """
+<div class="columns is-mobile is-multiline is-gapless">
+    <div class="column is-2-mobile is-2-tablet is-1-desktop">
+    <figure class="image is-square">
+    <img class="is-rounded" src="/icon/query/{}" style="padding:3%">
+    </figure>
+    </div>
+""".format(img_name)
+            string += """
+    <form method="post">
+        <input class="button is-link" type="submit" formaction="./upload" name="button" value="OK">
+    </form>
+</div>
 <div class="columns is-mobile is-multiline is-gapless">"""
 
             for n in niteru:
