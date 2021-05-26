@@ -201,7 +201,7 @@ def upload_file():
 
             response = client.files_upload(
                 channels='#icon_history',
-                initial_comment=comment,
+                initial_comment='検索結果からのアイコン変更',
                 title=os.path.basename(filename),
                 file=filename)
         except:
