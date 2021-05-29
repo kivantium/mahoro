@@ -15,6 +15,7 @@ from werkzeug.utils import secure_filename
 import subprocess
 import slack
 import cv2
+import pickle
 
 #Authorization
 f = open(os.path.join(os.path.dirname(__file__), 'config2.txt'))
@@ -43,6 +44,21 @@ app.register_blueprint(img)
 app.register_blueprint(que)
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'images/')
 #app.config['MAX_CONTENT_LENGTH'] = 10240 *  1024
+
+def start():
+    image_list = sorted(os.listdir("images"), reverse=True)
+    des = []
+    for i in image_list:
+        i_name = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'images', i)
+        IMG_SIZE = (100, 100)
+        detector = cv2.AKAZE_create()
+        i_img = cv2.imread(i_name, cv2.IMREAD_GRAYSCALE)
+        i_img = cv2.resize(i_img, IMG_SIZE)
+        (i_kp, i_des) = detector.detectAndCompute(i_img, None)
+        des.append([i, i_des])
+    filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', 'des.dump')
+    with open(filename, 'wb') as f:
+        pickle.dump(des, f)
 
 @app.route('/', methods=['GET'])
 def index():
@@ -185,8 +201,11 @@ fileInput.onchange = () => {
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    IMG_SIZE = (100, 100)
+    detector = cv2.AKAZE_create()
+    pickle_filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', 'des.dump')
     if request.form['button'] == "OK":
-        image_name = sorted(os.listdir("query"), reverse=True)[0]
+        image_name = request.form['image_name']
         filename_img = cv2.imread(os.path.join(os.path.abspath(os.path.dirname(__file__)), "query", image_name))
         filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), "images", image_name)
         cv2.imwrite(filename, filename_img)
@@ -197,6 +216,17 @@ def upload_file():
                 api.update_profile_image('/tmp/output.jpg')
             else:
                 api.update_profile_image(filename)
+
+            with open(pickle_filename, 'rb') as f:
+                des = pickle.load(f)
+            i_img = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+            i_img = cv2.resize(i_img, IMG_SIZE)
+            (i_kp, i_des) = detector.detectAndCompute(i_img, None)
+            des.append([image_name, i_des])
+            filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', 'des.dump')
+            with open(filename, 'wb') as f:
+                pickle.dump(des, f)
+                
             client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
 
             response = client.files_upload(
@@ -204,6 +234,7 @@ def upload_file():
                 initial_comment='検索結果からのアイコン変更',
                 title=os.path.basename(filename),
                 file=filename)
+
         except:
             traceback.print_exc()
             return '''
@@ -292,6 +323,17 @@ def upload_file():
                     api.update_profile_image('/tmp/output.jpg')
                 else:
                     api.update_profile_image(filename)
+
+                with open(pickle_filename, 'rb') as f:
+                    des = pickle.load(f)
+                i_img = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+                i_img = cv2.resize(i_img, IMG_SIZE)
+                (i_kp, i_des) = detector.detectAndCompute(i_img, None)
+                des.append([current_time+ext, i_des])
+                filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', 'des.dump')
+                with open(filename, 'wb') as f:
+                    pickle.dump(des, f)
+
                 client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
 
                 response = client.files_upload(
@@ -416,20 +458,19 @@ def search_file():
             (target_kp, target_des) = detector.detectAndCompute(target_img, None)
             niteru = [[100000.0, ''] for i in range(12)]
             niteruret = 100000.0
-            for filenamel in image_list:
-                filename_img = os.path.join(os.path.abspath(os.path.dirname(__file__)), "images", filenamel)
+            pickle_filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', 'des.dump')
+            with open(pickle_filename, 'rb') as f:
+                data = pickle.load(f)
+            for i in data:
                 try:
-                    comparing_img = cv2.imread(filename_img, cv2.IMREAD_GRAYSCALE)
-                    comparing_img = cv2.resize(comparing_img, IMG_SIZE)
-                    (comparing_kp, comparing_des) = detector.detectAndCompute(comparing_img, None)
-                    matches = bf.match(target_des, comparing_des)
+                    matches = bf.match(target_des, i[1])
                     dist = [m.distance for m in matches]
                     ret = sum(dist) / len(dist)
                 except cv2.error:
                     ret = 100000.0
 
                 if niteruret > ret:
-                    niteru[11] = [ret, filenamel]
+                    niteru[11] = [ret, i[0]]
                     niteru.sort()
                     niteruret = niteru[11][0]
             string = """
@@ -460,10 +501,11 @@ def search_file():
 """.format(img_name)
             string += """
     <form method="post">
+        <input type="hidden" name="image_name" value="{}">
         <input class="button is-link" type="submit" formaction="./upload" name="button" value="OK">
     </form>
 </div>
-<div class="columns is-mobile is-multiline is-gapless">"""
+<div class="columns is-mobile is-multiline is-gapless">""".format(img_name)
 
             for n in niteru:
                 string += """
@@ -508,4 +550,5 @@ fileInput.onchange = () => {
             </html>
             '''
 if __name__ == '__main__':
+    start()
     app.run(debug=False, host='0.0.0.0', port=12345)
