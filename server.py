@@ -89,7 +89,7 @@ def index():
               <div class="control"><input type="text" class="input" name="comment" placeholder="コメント（任意）"></div>
             </div>
             <div class="field">
-              <input class="button is-link" type="submit" formaction="./upload" value="Upload">
+              <input class="button is-link" type="submit" formaction="./upload" name="button"  value="Upload">
               <input class="button is-link" type="submit" formaction="./search" value="Search">
             </div>
           </form>
@@ -201,7 +201,7 @@ def upload_file():
 
             response = client.files_upload(
                 channels='#icon_history',
-                initial_comment=comment,
+                initial_comment='検索結果からのアイコン変更',
                 title=os.path.basename(filename),
                 file=filename)
         except:
