@@ -223,8 +223,8 @@ def upload_file():
             i_img = cv2.resize(i_img, IMG_SIZE)
             (i_kp, i_des) = detector.detectAndCompute(i_img, None)
             des.append([image_name, i_des])
-            filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', 'des.dump')
-            with open(filename, 'wb') as f:
+            dumpfilename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', 'des.dump')
+            with open(dumpfilename, 'wb') as f:
                 pickle.dump(des, f)
                 
             client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
@@ -330,8 +330,8 @@ def upload_file():
                 i_img = cv2.resize(i_img, IMG_SIZE)
                 (i_kp, i_des) = detector.detectAndCompute(i_img, None)
                 des.append([current_time+ext, i_des])
-                filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', 'des.dump')
-                with open(filename, 'wb') as f:
+                dumpfilename = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'query', 'des.dump')
+                with open(dumpfilename, 'wb') as f:
                     pickle.dump(des, f)
 
                 client = slack.WebClient(token=os.environ['SLACK_TOKEN'])
