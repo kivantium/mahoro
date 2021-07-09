@@ -39,8 +39,20 @@ today = datetime.date.today()
 if isOpen(today) and d.hour >= 10 and d.hour <= 15:
     #日経平均
     try:
-        nikkei_price = soup.find('span', {'data-reactid':'123'}).get_text()
-        nikkei_change = soup.find('span', {'data-reactid':'125'}).get_text()
+        scrape = soup.find_all('tr')
+        td = 0
+        for i in scrape:
+            for j in i.contents:
+                if td == 0 and "Nikkei" in j:
+                    td += 1
+                elif td == 1:
+                    nikkei_price = j.string
+                    td += 1
+                elif td == 2:
+                    nikkei_change = j.string
+                    break
+            if td == 2:
+             break
         message += "日経平均: {price}円 (前日比{change}円)\n".format(price=(nikkei_price), change=str(nikkei_change))
     except:
         pass
@@ -58,8 +70,21 @@ us_holidays = holidays.UnitedStates()
 
 if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.hour >= 10 and ustime.hour <= 16:
     try:
-        dow_price = soup.find('span', {'data-reactid':'83'}).get_text()
-        dow_change = soup.find('span', {'data-reactid':'85'}).get_text()
+        scrape = soup.find_all('tr')
+        td = 0
+        for i in scrape:
+            for j in i.contents:
+                if td == 0 and "Dow" in j:
+                    td += 1
+                elif td == 1:
+                    dow_price = j.string
+                    td += 1
+                elif td == 2:
+                    dow_change = j.string
+                    break
+            if td == 2:
+             break
+
         message += "ダウ平均: {price}ドル (前日比{change}ドル)\n".format(price=(dow_price), change=str(dow_change))
         spc_price = soup.find('span', {'data-reactid':'303'}).get_text()
         spc_change = soup.find('span', {'data-reactid':'305'}).get_text()
