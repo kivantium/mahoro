@@ -34,6 +34,7 @@ try:
         dif = d - tweet.created_at
         if dif.seconds >= 180 and dif.seconds < 240:
             if tweet.retweet_count > 50 and tweet.text.find('RT') == -1:
-                api.update_status("https://twitter.com/{}/status/{}".format(tweet.author.screen_name, tweet.id))
+                api.retweet(tweet.id)
+                #api.update_status("https://twitter.com/{}/status/{}".format(tweet.author.screen_name, tweet.id))
 except:
     pass
