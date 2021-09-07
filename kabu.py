@@ -55,8 +55,6 @@ if isOpen(today) and d.hour >= 10 and d.hour <= 15:
                     break
             if end:
                 break
-        print(nikkei_price)
-        print(nikkei_change)
         message += "日経平均: {price}円 (前日比{change}円)\n".format(price=(nikkei_price), change=str(nikkei_change))
     except:
         pass
