@@ -32,27 +32,31 @@ def isOpen(today):
 d = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
 message = '{month}月{day}日{hour}時{minute}分をお知らせします。\n\n'.format(month=str(d.month), day=str(d.day), hour=str(d.hour).zfill(2), minute=str(d.minute).zfill(2))
 
-res = requests.get('https://in.finance.yahoo.com/world-indices')
+res = requests.get('https://trade.smbcnikko.co.jp/IMode/13E370726085/imode/sisu_h?sisuCd=1')
 soup = BeautifulSoup(res.text, 'html.parser')
 
 today = datetime.date.today()
 if isOpen(today) and d.hour >= 10 and d.hour <= 15:
     #日経平均
     try:
-        scrape = soup.find_all('tr')
-        td = 0
+        scrape = soup.find_all('dt')
+        dt = 0
+        end = False
         for i in scrape:
             for j in i.contents:
-                if td == 0 and "Nikkei" in j:
-                    td += 1
-                elif td == 1:
-                    nikkei_price = j.string
-                    td += 1
-                elif td == 2:
-                    nikkei_change = j.string
+                if "現値" in j:
+                    nikkei_price = j.split(":")[1]
+                    dt += 1
+                elif "前日比" in j:
+                    dt += 1
+                elif dt == 2:
+                    nikkei_change = j.contents[0]
+                    end = True
                     break
-            if td == 2:
-             break
+            if end:
+                break
+        print(nikkei_price)
+        print(nikkei_change)
         message += "日経平均: {price}円 (前日比{change}円)\n".format(price=(nikkei_price), change=str(nikkei_change))
     except:
         pass
