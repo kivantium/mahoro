@@ -30,8 +30,9 @@ def isOpen(today):
         return True
 #時間
 d = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
-dt = datetime.datetime.utcnow() + datetime.timedelta(hours=-4)
-message = '{month}月{day}日{hour}時{minute}分をお知らせします。{hourt}\n\n'.format(month=str(d.month), day=str(d.day), hour=str(d.hour).zfill(2), minute=str(d.minute).zfill(2), hourt=str(dt.hour))
+tz = timezone('EST')
+ustime = datetime.datetime.now(tz)
+message = '{month}月{day}日{hour}時{minute}分をお知らせします。{hourt}\n\n'.format(month=str(d.month), day=str(d.day), hour=str(d.hour).zfill(2), minute=str(d.minute).zfill(2), hourt=str(ustime.hour))
 
 today = datetime.date.today()
 if isOpen(today) and d.hour >= 10 and d.hour <= 15:
@@ -75,8 +76,6 @@ if isOpen(today) and d.hour >= 10 and d.hour <= 15:
     #topix_change = soupt.find('span', class_='icoUpGreen yjMSt').get_text().split('（')[0]
     #message += "TOPIX: {price} (前日比{change})\n".format(price=str(topix_price), change=str(topix_change))
 
-tz = timezone('EST')
-ustime = datetime.datetime.now(tz)
 us_holidays = holidays.UnitedStates()
 
 if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.hour >= 10 and ustime.hour <= 16:
@@ -89,9 +88,9 @@ if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.
         dow_change = soup.find('span', {'data-reactid':str(data)}).string.replace(" ", "").split("(")[0]
 
         message += "ダウ平均: {price}ドル (前日比{change}ドル)\n".format(price=(dow_price), change=str(dow_change))
-        spc_price = soup.find('span', {'data-reactid':'303'}).get_text()
-        spc_change = soup.find('span', {'data-reactid':'305'}).get_text()
-        message += "S&P 500: {price} (前日比{change})\n".format(price=(spc_price), change=str(spc_change))
+        #spc_price = soup.find('span', {'data-reactid':'303'}).get_text()
+        #spc_change = soup.find('span', {'data-reactid':'305'}).get_text()
+        #message += "S&P 500: {price} (前日比{change})\n".format(price=(spc_price), change=str(spc_change))
     except:
         pass
 
