@@ -30,34 +30,43 @@ def isOpen(today):
         return True
 #時間
 d = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
-message = '{month}月{day}日{hour}時{minute}分をお知らせします。\n\n'.format(month=str(d.month), day=str(d.day), hour=str(d.hour).zfill(2), minute=str(d.minute).zfill(2))
-
-res = requests.get('https://trade.smbcnikko.co.jp/IMode/13E370726085/imode/sisu_h?sisuCd=1')
-soup = BeautifulSoup(res.text, 'html.parser')
+dt = datetime.datetime.utcnow() + datetime.timedelta(hours=-4)
+message = '{month}月{day}日{hour}時{minute}分をお知らせします。{hourt}\n\n'.format(month=str(d.month), day=str(d.day), hour=str(d.hour).zfill(2), minute=str(d.minute).zfill(2), hourt=str(dt.hour))
 
 today = datetime.date.today()
 if isOpen(today) and d.hour >= 10 and d.hour <= 15:
     #日経平均
     try:
-        scrape = soup.find_all('dt')
-        dt = 0
-        end = False
-        for i in scrape:
-            for j in i.contents:
-                if "現値" in j:
-                    nikkei_price = j.split(":")[1]
-                    dt += 1
-                elif "前日比" in j:
-                    dt += 1
-                elif dt == 2:
-                    nikkei_change = j.contents[0]
-                    end = True
-                    break
-            if end:
-                break
+        res = requests.get('https://finance.yahoo.com/quote/%5EN225?p=%5EN225')
+        soup = BeautifulSoup(res.text, 'html.parser')
+        nikkei = soup.find('span', {'class':'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})
+        nikkei_price = nikkei.string
+        data = int(nikkei['data-reactid']) + 1
+        nikkei_change = soup.find('span', {'data-reactid':str(data)}).string.replace(" ", "").split("(")[0]
         message += "日経平均: {price}円 (前日比{change}円)\n".format(price=(nikkei_price), change=str(nikkei_change))
     except:
-        pass
+        try:
+            res = requests.get('https://trade.smbcnikko.co.jp/IMode/13E370726085/imode/sisu_h?sisuCd=1')
+            soup = BeautifulSoup(res.text, 'html.parser')
+            scrape = soup.find_all('dt')
+            dt = 0
+            end = False
+            for i in scrape:
+                for j in i.contents:
+                    if "現値" in j:
+                        nikkei_price = j.split(":")[1]
+                        dt += 1
+                    elif "前日比" in j:
+                        dt += 1
+                    elif dt == 2:
+                        nikkei_change = j.contents[0]
+                        end = True
+                        break
+                if end:
+                    break
+            message += "日経平均: {price}円 (前日比{change}円)\n".format(price=(nikkei_price), change=str(nikkei_change))
+        except:
+            pass
 
     #TOPIX
     #rest = requests.get('http://stocks.finance.yahoo.co.jp/stocks/detail/?code=998405')
@@ -72,20 +81,12 @@ us_holidays = holidays.UnitedStates()
 
 if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.hour >= 10 and ustime.hour <= 16:
     try:
-        scrape = soup.find_all('tr')
-        td = 0
-        for i in scrape:
-            for j in i.contents:
-                if td == 0 and "Dow" in j:
-                    td += 1
-                elif td == 1:
-                    dow_price = j.string
-                    td += 1
-                elif td == 2:
-                    dow_change = j.string
-                    break
-            if td == 2:
-             break
+        res = requests.get('https://finance.yahoo.com/quote/%5EDJI?p=%5EDJI')
+        soup = BeautifulSoup(res.text, 'html.parser')
+        dow = soup.find('span', {'class':'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})
+        dow_price = dow.string
+        data = int(nikkei['data-reactid']) + 1
+        dow_change = soup.find('span', {'data-reactid':str(data)}).string.replace(" ", "").split("(")[0]
 
         message += "ダウ平均: {price}ドル (前日比{change}ドル)\n".format(price=(dow_price), change=str(dow_change))
         spc_price = soup.find('span', {'data-reactid':'303'}).get_text()
@@ -94,11 +95,20 @@ if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.
     except:
         pass
 
-res = requests.get('https://in.finance.yahoo.com/currencies')
-soup = BeautifulSoup(res.text, 'html.parser')
-search = re.compile('.*USD/JPY.*')
-dollar = soup.find(text=search).find_next().text
-message += "1ドル: {:.2f}円\n".format(float(dollar))
+try:
+    res = requests.get('https://finance.yahoo.com/quote/JPY%3DX?p=JPY%3DX')
+    soup = BeautifulSoup(res.text, 'html.parser')
+    dollar = soup.find('span', {'class':'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'}).string
+    message += "1ドル: {:.2f}円\n".format(float(dollar))
+except:
+    try:
+        res = requests.get('https://finance.yahoo.com/currencies')
+        soup = BeautifulSoup(res.text, 'html.parser')
+        search = re.compile('.*USD/JPY.*')
+        dollar = soup.find(text=search).find_next().text
+        message += "1ドル: {:.2f}円\n".format(float(dollar))
+    except:
+        pass
 
 btc = requests.get('https://api.bitflyer.jp/v1/ticker?product_code=BTC_JPY').json()['ltp']
 message += "現在のビットコイン価格は{price}円です".format(price=str(btc))
