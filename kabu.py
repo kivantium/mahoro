@@ -85,7 +85,7 @@ if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.
         soup = BeautifulSoup(res.text, 'html.parser')
         dow = soup.find('span', {'class':'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})
         dow_price = dow.string
-        data = int(nikkei['data-reactid']) + 1
+        data = int(dow['data-reactid']) + 1
         dow_change = soup.find('span', {'data-reactid':str(data)}).string.replace(" ", "").split("(")[0]
 
         message += "ダウ平均: {price}ドル (前日比{change}ドル)\n".format(price=(dow_price), change=str(dow_change))
