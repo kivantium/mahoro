@@ -30,9 +30,10 @@ def isOpen(today):
         return True
 #時間
 d = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
-tz = timezone('EST')
+tz = timezone('US/Eastern')
 ustime = datetime.datetime.now(tz)
-message = '{month}月{day}日{hour}時{minute}分をお知らせします。{hourt}\n\n'.format(month=str(d.month), day=str(d.day), hour=str(d.hour).zfill(2), minute=str(d.minute).zfill(2), hourt=str(ustime.hour))
+message = '{month}月{day}日{hour}時{minute}分をお知らせします。\n'.format(month=str(d.month), day=str(d.day), hour=str(d.hour).zfill(2), minute=str(d.minute).zfill(2))
+message += 'ニューヨーク時間: {}月{}日{}時{}分\n\n'.format(ustime.month, ustime.day, str(ustime.hour).zfill(2), str(ustime.minute).zfill(2))
 
 today = datetime.date.today()
 if isOpen(today) and d.hour >= 10 and d.hour <= 15:
