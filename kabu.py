@@ -21,6 +21,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 
+# this is test
+
 def isOpen(today):
     tommorrow = today + datetime.timedelta(days=1)
     yesterday = today - datetime.timedelta(days=1)
