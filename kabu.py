@@ -41,34 +41,13 @@ if isOpen(today) and d.hour >= 10 and d.hour <= 15:
     try:
         res = requests.get('https://finance.yahoo.com/quote/%5EN225?p=%5EN225')
         soup = BeautifulSoup(res.text, 'html.parser')
-        nikkei = soup.find('span', {'class':'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})
+        nikkei = soup.find('fin-streamer', {'class':'Fw(b) Fz(36px) Mb(-4px) D(ib)'})
         nikkei_price = nikkei.string
         data = int(nikkei['data-reactid']) + 1
-        nikkei_change = soup.find('span', {'data-reactid':str(data)}).string.replace(" ", "").split("(")[0]
+        nikkei_change = soup.find('fin-streamer', {'data-reactid':str(data)}).string
         message += "日経平均: {price}円 (前日比{change}円)\n".format(price=(nikkei_price), change=str(nikkei_change))
     except:
-        try:
-            res = requests.get('https://trade.smbcnikko.co.jp/IMode/13E370726085/imode/sisu_h?sisuCd=1')
-            soup = BeautifulSoup(res.text, 'html.parser')
-            scrape = soup.find_all('dt')
-            dt = 0
-            end = False
-            for i in scrape:
-                for j in i.contents:
-                    if "現値" in j:
-                        nikkei_price = j.split(":")[1]
-                        dt += 1
-                    elif "前日比" in j:
-                        dt += 1
-                    elif dt == 2:
-                        nikkei_change = j.contents[0]
-                        end = True
-                        break
-                if end:
-                    break
-            message += "日経平均: {price}円 (前日比{change}円)\n".format(price=(nikkei_price), change=str(nikkei_change))
-        except:
-            pass
+        pass
 
     #TOPIX
     #rest = requests.get('http://stocks.finance.yahoo.co.jp/stocks/detail/?code=998405')
@@ -83,10 +62,10 @@ if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.
     try:
         res = requests.get('https://finance.yahoo.com/quote/%5EDJI?p=%5EDJI')
         soup = BeautifulSoup(res.text, 'html.parser')
-        dow = soup.find('span', {'class':'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'})
+        dow = soup.find('fin-streamer', {'class':'Fw(b) Fz(36px) Mb(-4px) D(ib)'})
         dow_price = dow.string
         data = int(dow['data-reactid']) + 1
-        dow_change = soup.find('span', {'data-reactid':str(data)}).string.replace(" ", "").split("(")[0]
+        dow_change = soup.find('fin-streamer', {'data-reactid':str(data)}).string
 
         message += "ダウ平均: {price}ドル (前日比{change}ドル)\n".format(price=(dow_price), change=str(dow_change))
         #spc_price = soup.find('span', {'data-reactid':'303'}).get_text()
