@@ -45,6 +45,12 @@ if isOpen(today) and d.hour >= 10 and d.hour <= 15:
         nikkei_price = nikkei.string
         data = int(nikkei['data-reactid']) + 1
         nikkei_change = soup.find('fin-streamer', {'data-reactid':str(data),'data-symbol':'^N225'}).string
+        
+        nikkei_price_float = float(nikkei_price.replace("+","").replace("-","").replace(",",""))
+        nikkei_change_float = float(nikkei_change.replace("+","").replace("-","").replace(",",""))
+        if(nikkei_change_float / nikkei_price_float > 0.2):
+            nikkei_change = soup.find('fin-streamer', {'class':'Fw(500) Pstart(8px) Fz(24px)','data-symbol':'^N225'}).string
+        message += "日経平均: {price}円 (前日比{change}円)\n".format(price=(nikkei_price), change=str(nikkei_change))
         message += "日経平均: {price}円 (前日比{change}円)\n".format(price=(nikkei_price), change=str(nikkei_change))
     except:
         pass
@@ -67,6 +73,10 @@ if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.
         data = int(dow['data-reactid']) + 1
         dow_change = soup.find('fin-streamer', {'data-reactid':str(data),'data-symbol':'^DJI'}).string
 
+        dow_price_float = float(nikkei_price.replace("+","").replace("-","").replace(",",""))
+        dow_change_float = float(nikkei_change.replace("+","").replace("-","").replace(",",""))
+        if(dow_change_float / dow_price_float > 0.2):
+            dow_change = soup.find('fin-streamer', {'class':'Fw(500) Pstart(8px) Fz(24px)','data-symbol':'^DJI'}).string
         message += "ダウ平均: {price}ドル (前日比{change}ドル)\n".format(price=(dow_price), change=str(dow_change))
         #spc_price = soup.find('span', {'data-reactid':'303'}).get_text()
         #spc_change = soup.find('span', {'data-reactid':'305'}).get_text()
