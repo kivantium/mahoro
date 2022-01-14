@@ -72,8 +72,8 @@ if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.
         data = int(dow['data-reactid']) + 1
         dow_change = soup.find('fin-streamer', {'data-reactid':str(data),'data-symbol':'^DJI'}).string
 
-        dow_price_float = float(nikkei_price.replace("+","").replace("-","").replace(",",""))
-        dow_change_float = float(nikkei_change.replace("+","").replace("-","").replace(",",""))
+        dow_price_float = float(dow_price.replace("+","").replace("-","").replace(",",""))
+        dow_change_float = float(dow_change.replace("+","").replace("-","").replace(",",""))
         if(dow_change_float / dow_price_float > 0.2):
             dow_change = soup.find('fin-streamer', {'class':'Fw(500) Pstart(8px) Fz(24px)','data-symbol':'^DJI'}).string
         message += "ダウ平均: {price}ドル (前日比{change}ドル)\n".format(price=(dow_price), change=str(dow_change))
