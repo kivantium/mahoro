@@ -36,10 +36,11 @@ message = '{month}月{day}日{hour}時{minute}分をお知らせします。\n'.
 message += 'ニューヨーク時間: {}月{}日{}時{}分\n\n'.format(ustime.month, ustime.day, str(ustime.hour).zfill(2), str(ustime.minute).zfill(2))
 
 today = datetime.date.today()
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"}
 if isOpen(today) and d.hour >= 10 and d.hour <= 15:
     #日経平均
     try:
-        res = requests.get('https://finance.yahoo.com/quote/%5EN225?p=%5EN225')
+        res = requests.get('https://finance.yahoo.com/quote/%5EN225?p=%5EN225', headers=headers)
         soup = BeautifulSoup(res.text, 'html.parser')
         nikkei_price = soup.find('fin-streamer', {'class':'Fw(b) Fz(36px) Mb(-4px) D(ib)','data-symbol':'^N225'}).string
         nikkei_change = soup.find('fin-streamer', {'class':'Fw(500) Pstart(8px) Fz(24px)','data-symbol':'^N225'}).string
@@ -58,7 +59,7 @@ us_holidays = holidays.UnitedStates()
 
 if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.hour >= 10 and ustime.hour <= 16:
     try:
-        res = requests.get('https://finance.yahoo.com/quote/%5EDJI?p=%5EDJI')
+        res = requests.get('https://finance.yahoo.com/quote/%5EDJI?p=%5EDJI', headers=headers)
         soup = BeautifulSoup(res.text, 'html.parser')
         dow_price = soup.find('fin-streamer', {'class':'Fw(b) Fz(36px) Mb(-4px) D(ib)','data-symbol':'^DJI'}).string
         dow_change = soup.find('fin-streamer', {'class':'Fw(500) Pstart(8px) Fz(24px)','data-symbol':'^DJI'}).string
@@ -70,13 +71,13 @@ if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.
         pass
 
 try:
-    res = requests.get('https://finance.yahoo.com/quote/JPY%3DX?p=JPY%3DX')
+    res = requests.get('https://finance.yahoo.com/quote/JPY%3DX?p=JPY%3DX', headers=headers)
     soup = BeautifulSoup(res.text, 'html.parser')
     dollar = soup.find('span', {'class':'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'}).string
     message += "1ドル: {:.2f}円\n".format(float(dollar))
 except:
     try:
-        res = requests.get('https://finance.yahoo.com/currencies')
+        res = requests.get('https://finance.yahoo.com/currencies', headers=headers)
         soup = BeautifulSoup(res.text, 'html.parser')
         search = re.compile('.*USD/JPY.*')
         dollar = soup.find(text=search).find_next().text
