@@ -81,6 +81,7 @@ def index():
       <div class="container">
         <h1 class="title">kivantium icon changer</h1>
         <div class="content">
+        <!--
           <p>画像ファイルをアップロードしてください (JPEG, PNG, GIF, WebP)</p>
           <form method="post" enctype="multipart/form-data" accept="image/*">
             <div class="field">
@@ -109,8 +110,10 @@ def index():
               <input class="button is-link" type="submit" formaction="./search" value="Search">
             </div>
           </form>
+          -->
           <h3>更新履歴</h3>
           <ul>
+            <li>Twitter APIキーが無効化されたためサービスを終了しました。ご利用ありがとうございました (2023/05/22)</li>
             <li>@amane-lyricさんによって検索機能が実装されました。 (2021/05/22)</li>
             <li>現行システムに移行してからのアイコン履歴を表示するようにしました。 (2020/04/16)</li>
             <li>スマートフォン向けにデザインを変更しました。 (2020/03/02)</li>

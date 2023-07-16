@@ -21,6 +21,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 
+from mastodon import Mastodon
+
+
 def isOpen(today):
     tommorrow = today + datetime.timedelta(days=1)
     yesterday = today - datetime.timedelta(days=1)
@@ -90,50 +93,23 @@ message += "現在のビットコイン価格は{price}円です".format(price=s
 
 today = datetime.datetime.utcnow()
 yesterday = today - datetime.timedelta(days=1)
-pub = python_bitbankcc.public()
-df = pd.DataFrame({'Open': [], 'High':[], 'Low':[], 'Close':[], 'Volume':[]})
 
-value = pub.get_candlestick('btc_jpy', '15min', yesterday.strftime('%Y%m%d'))
-for o, h, l, c, v, ut in value["candlestick"][0]["ohlcv"]:
-    dt = pd.to_datetime(ut, unit='ms')
-    dt_jst = datetime.datetime.fromtimestamp(ut/1000, datetime.timezone(datetime.timedelta(hours=9)))
-    df.loc[dt] = [int(o), int(h), int(l), int(c), float(v)]
+with open("config.json") as f:
+    data = json.load(f)
 
-value = pub.get_candlestick('btc_jpy', '15min', today.strftime('%Y%m%d'))
-for o, h, l, c, v, ut in value["candlestick"][0]["ohlcv"]:
-    dt = pd.to_datetime(ut, unit='ms')
-    dt_jst = datetime.datetime.fromtimestamp(ut/1000, datetime.timezone(datetime.timedelta(hours=9)))
-    df.loc[dt] = [int(o), int(h), int(l), int(c), float(v)]
-
-df['ema_12'] = df['Close'].ewm(span=12).mean()
-df['ema_26'] = df['Close'].ewm(span=26).mean()
-df['macd'] = df['ema_12'] - df['ema_26']
-df['signal'] = df['macd'].ewm(span=9).mean()
-df['macdhist'] = df['macd']-df['signal']
-df['macdhist_ema3'] = df['macdhist'].ewm(span=3).mean()
-
-
-df = df.tz_localize('UTC').tz_convert('Asia/Tokyo')
-df = df[-49:-1]
-apds = [ mpf.make_addplot(df['macdhist'], type='bar', width=1.0, panel=1, color='gray', alpha=0.5, ylabel='macdhist'),
-         mpf.make_addplot(df['macdhist_ema3'], width=1.0, panel=1, alpha=0.5) ]
-
-filename = os.path.join(os.path.dirname(__file__), 'candlestick.png')
-#mpf.plot(df, type='candle', figratio=(16, 9), style='yahoo', savefig=filename, addplot=apds)
-mpf.plot(df, type='candle', figratio=(16, 9), style='yahoo', savefig=filename)
 
 #Authorization
-f = open(os.path.join(os.path.dirname(__file__), 'config.txt'))
-data = f.read()
-f.close()
-lines = data.split('\n')
+client = tweepy.Client(
+    consumer_key=data["consumer_key"],
+    consumer_secret=data["consumer_secret"],
+    access_token=data["access_token"],
+    access_token_secret=data["access_token_secret"]
+)
 
-KEY = lines[0]
-SECRET = lines[1]
-ATOKEN = lines[2]
-ASECRET = lines[3]
-#What to tweet
-auth = tweepy.OAuthHandler(KEY, SECRET)
-auth.set_access_token(ATOKEN, ASECRET)
-api = tweepy.API(auth)
-api.update_with_media(filename, status=message)
+client.create_tweet(text=message)
+
+api = Mastodon(
+    api_base_url='https://mstdn.poyo.me',
+    access_token=data["mastodon_token"])
+
+api.status_post(message)

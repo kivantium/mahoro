@@ -1,13 +1,13 @@
 まほろ
 =========
 
-[@mitra_sun22](https://twitter.com/mitra_sun22)のソースコードです。
+[@mitra_sun22](https://twitter.com/mitra_sun22)と[@mahoro@mstdn.poyo.me](https://mstdn.poyo.me/@mahoro)のソースコードです。
 
 - `kabu.py`: 毎時0分に実行されます。時報・ドル円・ビットコイン相場を表示します。
-- `news.py`: 毎分実行されます。ニュースアカウントをチェックして特定の条件を満たすツイートを引用RTします。
 - `anime.py`: 20:50, 21:50, 22:50, 23:50に実行されます。[しょぼいカレンダー](http://cal.syoboi.jp/)から取得したTOKYO MXとテレビ東京のアニメ情報を表示します。
-- `tenki.py`: 05:10, 06:10, 07:10, 08:10, 09:10に実行されます。その日の天気予報画像を生成してツイートします。
-- `tenki_tomorrow.py`: 22:00に実行されます。次の日の天気予報画像を生成してツイートします。
+- `news.py`: 毎分実行されます。ニュースアカウントをチェックして特定の条件を満たすツイートを引用RTします。Twitter APIキーの有料化により現在は使えません
+- `tenki.py`: 05:10, 06:10, 07:10, 08:10, 09:10に実行されます。その日の天気予報画像を生成してツイートします。Twitter APIキーの有料化により現在は使えません
+- `tenki_tomorrow.py`: 22:00に実行されます。次の日の天気予報画像を生成してツイートします。Twitter APIキーの有料化により現在は使えません
 
 サーバー設定メモ
 ----------------
@@ -31,17 +31,6 @@ pip3 install beautifulsoup4 feedparser pillow
 ```
 
 ### サーバーの設定
-##### Let's Encrypt
-[手順詳細](https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx)
-```
-sudo apt-get install nginx software-properties-common
-sudo add-apt-repository universe
-sudo add-apt-repository ppa:certbot/certbot
-sudo apt-get update
-sudo apt-get install certbot python-certbot-nginx
-sudo certbot --nginx
-```
-
 #### リバースプロキシの設定
 `/etc/nginx/sites-available/default`の
 ```
