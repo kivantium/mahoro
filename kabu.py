@@ -73,7 +73,7 @@ if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.
 try:
     res = requests.get('https://finance.yahoo.com/quote/JPY%3DX?p=JPY%3DX', headers=headers)
     soup = BeautifulSoup(res.text, 'html.parser')
-    dollar = soup.find('span', {'class':'Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)'}).string
+    dollar = soup.find('fin-streamer', {'class':'Fw(b) Fz(36px) Mb(-4px) D(ib)'}).string
     message += "1ドル: {:.2f}円\n".format(float(dollar))
 except:
     try:
