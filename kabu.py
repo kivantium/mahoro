@@ -35,13 +35,14 @@ async def fetch_yahoo_api(message):
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(locale="ja-JP", user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
         page = await context.new_page()
+        time.sleep(3*random.random())
         # セッションCookieを得る
         await page.goto("https://finance.yahoo.co.jp")
         await page.wait_for_timeout(3000)  # 3秒待機でJSとCookie取得
 
         if isOpen(today) and d.hour >= 10 and d.hour <= 16:
             try:
-                time.sleep(5*random.random())
+                time.sleep(3*random.random())
                 nikkei_url = "https://query2.finance.yahoo.com/v8/finance/chart/^N225?range=1m"
                 nikkei_response = await page.goto(nikkei_url)
                 nikkei_body = await nikkei_response.text()
@@ -57,7 +58,7 @@ async def fetch_yahoo_api(message):
 
         if ustime.date().weekday() <= 4 and ustime.date() not in us_holidays and ustime.hour >= 10 and ustime.hour <= 16:
             try:
-                time.sleep(5*random.random())
+                time.sleep(3*random.random())
                 dow_url = "https://query2.finance.yahoo.com/v8/finance/chart/%5EDJI?range=1m"
                 dow_response = await page.goto(dow_url)
                 dow_body = await dow_response.text()
@@ -70,7 +71,7 @@ async def fetch_yahoo_api(message):
                 pass
 
             try:
-                time.sleep(5*random.random())
+                time.sleep(3*random.random())
                 nasdaq_url = "https://query2.finance.yahoo.com/v8/finance/chart/%5EIXIC?range=1m"
                 nasdaq_response = await page.goto(nasdaq_url)
                 nasdaq_body = await nasdaq_response.text()
@@ -83,7 +84,7 @@ async def fetch_yahoo_api(message):
                 pass
 
             try:
-                time.sleep(5*random.random())
+                time.sleep(3*random.random())
                 nikkei_url = "https://query2.finance.yahoo.com/v8/finance/chart/NIY%3DF?range=1m"
                 nikkei_response = await page.goto(nikkei_url)
                 nikkei_body = await nikkei_response.text()
@@ -96,7 +97,7 @@ async def fetch_yahoo_api(message):
                 pass
 
         try:
-            time.sleep(5*random.random())
+            time.sleep(3*random.random())
             yen_url = "https://query2.finance.yahoo.com/v8/finance/chart/JPY%3DX?p=JPY%3DX'?range=1m"
             yen_response = await page.goto(nikkei_url)
             yen_body = await yen_response.text()
@@ -107,6 +108,7 @@ async def fetch_yahoo_api(message):
             pass
 
         await browser.close()
+        return message
 
 message = asyncio.run(fetch_yahoo_api(message))
 
