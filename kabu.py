@@ -99,7 +99,7 @@ async def fetch_yahoo_api(message):
         try:
             time.sleep(3*random.random())
             yen_url = "https://query2.finance.yahoo.com/v8/finance/chart/JPY%3DX?p=JPY%3DX'?range=1m"
-            yen_response = await page.goto(nikkei_url)
+            yen_response = await page.goto(yen_url)
             yen_body = await yen_response.text()
             yen_data = json.loads(yen_body)
             yen_price = float(yen_data['chart']['result'][0]['meta']['regularMarketPrice'])
