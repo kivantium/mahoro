@@ -85,12 +85,17 @@ async def fetch_yahoo_api(message):
 
             try:
                 time.sleep(3*random.random())
-                nikkei_url = "https://query2.finance.yahoo.com/v8/finance/chart/NIY%3DF?range=1m"
+                nikkei_f_url = "https://query2.finance.yahoo.com/v8/finance/chart/NIY%3DF?range=1m"
+                nikkei_f_response = await page.goto(nikkei_f_url)
+                nikkei_f_body = await nikkei_f_response.text()
+                nikkei_f_data = json.loads(nikkei_f_body)
+                nikkei_price = float(nikkei_f_data['chart']['result'][0]['meta']['regularMarketPrice'])
+                time.sleep(random.random())
+                nikkei_url = "https://query2.finance.yahoo.com/v8/finance/chart/%5EN225?range=1m"
                 nikkei_response = await page.goto(nikkei_url)
                 nikkei_body = await nikkei_response.text()
                 nikkei_data = json.loads(nikkei_body)
-                nikkei_price = float(nikkei_data['chart']['result'][0]['meta']['regularMarketPrice'])
-                nikkei_previousClose = float(nikkei_data['chart']['result'][0]['meta']['previousClose'])
+                nikkei_previousClose = float(nikkei_data['chart']['result'][0]['meta']['regularMarketPrice'])
                 nikkei_change = nikkei_price - nikkei_previousClose
                 message += "日経平均先物: {price}円 (前日比{sign}{change:.2f}円)\n".format(price=str(nikkei_price), sign=("+" if nikkei_change > 0 else ""), change=nikkei_change)
             except:
